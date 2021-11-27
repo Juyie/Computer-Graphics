@@ -73,10 +73,15 @@ Shader* FloorShader;
 
 // ObjectModel
 Model* ourObjectModel;
-const char* ourObjectPath = "./teapot.obj";
+
+// HW5 //
+const char* ourObjectPath = "./alien.obj";
+//const char* ourObjectPath = "./teapot.obj";
 // translate it so it's at the center of the scene
 // it's a bit too big for our scene, so scale it down
-glm::mat4 objectXform = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.0f, 0.0f)), glm::vec3(0.08f, 0.08f, 0.08f));
+//glm::mat4 objectXform = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.0f, 0.0f)), glm::vec3(0.08f, 0.08f, 0.08f));
+// 새로운 모델에 맞게 크기, 위치, 각도 조절
+glm::mat4 objectXform = glm::rotate(glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.3f, 0.0f)), glm::vec3(0.0006f, 0.0006f, 0.0006f)), -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 // HOUSE KEEPING
 void initGL(GLFWwindow** window);
@@ -101,7 +106,7 @@ void DrawFingerBase(glm::mat4 model);
 void DrawFingerTip(glm::mat4 model);
 
 void DrawObject(glm::mat4 model);
-bool hasTextures = false; 
+bool hasTextures = false;
 
 void myDisplay()
 {
@@ -117,9 +122,13 @@ void myDisplay()
 	/*Extra Credit*/
 	// 주전자의 사이즈가 커서 원래 스케일을 0.08배로 줄이고 시작했으나 이 때문에 계산 결과가 의도와 달라지는 것 같아 기본 사이즈로 다시 만들었다.
 	// 그리고 원래 처음 위치였던 0,5, 0, 0으로 옮겨주었다.
-	glm::mat4 objectXform = glm::mat4(1.0f);
-	objectXform = glm::translate(objectXform, glm::vec3(0.5f, 0.0f, 0.0f));
+	//glm::mat4 objectXform = glm::mat4(1.0f);
+	//objectXform = glm::translate(objectXform, glm::vec3(0.5f, 0.0f, 0.0f));
 	/*************/
+	
+	// HW5 //
+	glm::mat4 objectXform = glm::mat4(1.0f);
+	objectXform = glm::translate(objectXform, glm::vec3(0.5f, 0.3f, 0.0f));
 
 	DrawGroundPlane(model);
 
@@ -208,9 +217,14 @@ void myDisplay()
 	DrawFingerTip(model);
 
 	/*Extra Credit*/
-	objectXform = glm::scale(objectXform, glm::vec3(0.08f, 0.08f, 0.08f));
+	//objectXform = glm::scale(objectXform, glm::vec3(100.08f, 100.08f, 100.08f));
+	/**************/
+
+	// HW 5 //
+	objectXform = glm::scale(objectXform, glm::vec3(0.0006f, 0.0006f, 0.0006f));
+	objectXform = glm::rotate(objectXform, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	DrawObject(objectXform);
-	/*************/
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -499,6 +513,7 @@ void createGLPrimitives()
 
 	// Load Object Model
 	ourObjectModel = new Model(ourObjectPath);
+
 	hasTextures = (ourObjectModel->textures_loaded.size() == 0) ? 0 : 1;
 
 }
