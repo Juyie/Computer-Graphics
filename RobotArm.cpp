@@ -53,6 +53,8 @@ bool SpaceDown = false;
 // settings
 const unsigned int SCR_WIDTH = 768;
 const unsigned int SCR_HEIGHT = 768;
+// HW6
+bool radial = true;
 
 // camera
 Camera camera(glm::vec3(0.0f, 1.5f, 2.5f), glm::vec3(0.0f, 1.0f, 0.0f), -90.f, -15.0f);
@@ -256,12 +258,36 @@ int main()
 		PhongShader->setMat4("view", camera.GetViewMatrix());
 		PhongShader->setVec3("viewPos", camera.Position);
 		PhongShader->setVec3("lightPos", camera.Position);
+		// HW6
+		PhongShader->setBool("radial", radial);
+		PhongShader->setVec3("light.position", camera.Position);
+		PhongShader->setVec3("light.direction", camera.Front);
+		PhongShader->setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		PhongShader->setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+		PhongShader->setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+		PhongShader->setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
+		PhongShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+		PhongShader->setFloat("light.constant", 1.0f);
+		PhongShader->setFloat("light.linear", 0.09f);
+		PhongShader->setFloat("light.quadratic", 0.032f);
 
 		FloorShader->use();
 		FloorShader->setMat4("projection", glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f));
 		FloorShader->setMat4("view", camera.GetViewMatrix());
 		FloorShader->setVec3("viewPos", camera.Position);
 		FloorShader->setVec3("lightPos", camera.Position);
+		// HW6
+		FloorShader->setBool("radial", radial);
+		FloorShader->setVec3("light.position", camera.Position);
+		FloorShader->setVec3("light.direction", camera.Front);
+		FloorShader->setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		FloorShader->setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+		FloorShader->setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+		FloorShader->setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
+		FloorShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+		FloorShader->setFloat("light.constant", 1.0f);
+		FloorShader->setFloat("light.linear", 0.09f);
+		FloorShader->setFloat("light.quadratic", 0.032f);
 
 		// render
 		myDisplay();
@@ -366,6 +392,15 @@ void processInput(GLFWwindow* window, int key, int scancode, int action, int mod
 		camera.ProcessKeyboard(LEFT, cameraSpeed);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, cameraSpeed);
+
+	// HW6
+	if (key == GLFW_KEY_L && action == GLFW_PRESS)
+	{
+		if (radial)
+			radial = false;
+		else
+			radial = true;
+	}
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
