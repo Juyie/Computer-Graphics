@@ -1,3 +1,4 @@
+// 컴퓨터공학과 1976433 황주이
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -25,6 +26,17 @@ float WristTwistAng = 10;
 float FingerAng1 = 45;     // 4
 float FingerAng2 = -90;
 
+// TEAPOT CONTROLS
+float TeaTransX = 0.0f;
+float TeaTransZ = 0.0f;
+float TeaBaseSpin = 0.0f;
+float TeaShoulderAng = 0.0f;
+float TeaElbowAng = 0.0f;
+float TeaWristAng = 0.0f;
+float TeaWristTwistAng = 0.0f;
+float TeaFingerAng1 = 0.0f;
+float TeaFingerAng2 = 0.0f;
+
 // ROBOT COLORS
 GLfloat Ground[] = { 0.5f, 0.5f, 0.5f };
 GLfloat Arms[] = { 0.5f, 0.5f, 0.5f };
@@ -34,7 +46,9 @@ GLfloat FingerJoints[] = { 0.5f, 0.5f, 0.5f };
 
 // USER INTERFACE GLOBALS
 int LeftButtonDown = 0;    // MOUSE STUFF
+int RightButtonDown = 0;
 int RobotControl = 0;
+bool SpaceDown = false;
 
 // settings
 const unsigned int SCR_WIDTH = 768;
@@ -100,13 +114,103 @@ void myDisplay()
 	//Ground
 	glm::mat4 model = glm::mat4(1.0f); // initialize matrix to identity matrix first
 
-	DrawGroundPlane(model);
+	/*Extra Credit*/
+	// 주전자의 사이즈가 커서 원래 스케일을 0.08배로 줄이고 시작했으나 이 때문에 계산 결과가 의도와 달라지는 것 같아 기본 사이즈로 다시 만들었다.
+	// 그리고 원래 처음 위치였던 0,5, 0, 0으로 옮겨주었다.
+	glm::mat4 objectXform = glm::mat4(1.0f);
+	objectXform = glm::translate(objectXform, glm::vec3(0.5f, 0.0f, 0.0f));
+	/*************/
 
-	DrawObject(objectXform);
+	DrawGroundPlane(model);
 
 	// ADD YOUR ROBOT RENDERING STUFF HERE     /////////////////////////////////////////////////////
 
+	// Base => 맨 아래 바닥 + 회색 기둥 + 파란 동그라미
+	model = glm::translate(model, glm::vec3(BaseTransX, 0.0f, BaseTransZ));
+	model = glm::rotate(model, BaseSpin * 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+	DrawBase(model); 
 
+	/*Extra Credit*/
+	// 마우스가 움직인 만큼 원래 위치에서 이동하면 되므로 TeaTransX와 TeaTransZ를 이용하여 이동시켜준다.
+	objectXform = glm::translate(objectXform, glm::vec3(TeaTransX, 0.0f, TeaTransZ));
+
+	// 회전에서 주의해야 할 것은 주전자가 제자리 회전 뿐만 아니라 로봇의 주위를 회전한다는 것이다.
+	// 그렇기 때문에 회전 외의 이동도 필요하다.
+	// 먼저 주전자를 로봇이 있는 축으로 옮기고 회전한 뒤 다시 원래자리로 옮긴다.
+	if (SpaceDown && RobotControl == 1)
+	{
+		objectXform = glm::translate(objectXform, glm::vec3(-TeaTransX + BaseTransX - 0.5f, 0.0f, -TeaTransX + BaseTransZ));
+		objectXform = glm::rotate(objectXform, TeaBaseSpin * 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+		objectXform = glm::translate(objectXform, glm::vec3(TeaTransX - BaseTransX + 0.5f, 0.0f, TeaTransZ - BaseTransZ));
+	}
+	/*************/
+
+	// ArmSegment 2개 => 회색 기둥 + 파란 동그라미
+	model = glm::translate(model, glm::vec3(0.0f, 0.4f, 0.0f));
+	model = glm::rotate(model, ShoulderAng * 0.02f, glm::vec3(0.0f, 0.0f, 1.0f));
+	DrawArmSegment(model); 
+
+	model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+	model = glm::rotate(model, ElbowAng * 0.016f, glm::vec3(0.0f, 0.0f, 1.0f));
+	DrawArmSegment(model);
+
+	/*Extra Credit*/
+	if (SpaceDown && RobotControl == 2)
+	{
+		// 축을 첫번째 ArmSegment로 옮긴 뒤 회전하고 다시 원래 자리로 돌아온다.
+		objectXform = glm::translate(objectXform, glm::vec3(TeaTransX - 0.5f, 0.4f, TeaTransZ));
+		objectXform = glm::rotate(objectXform, TeaShoulderAng * 0.02f, glm::vec3(0.0f, 0.0f, 1.0f));
+		objectXform = glm::translate(objectXform, glm::vec3(-TeaTransX + 0.5f, -0.4f, TeaTransZ));
+
+		// 축을 두번째 ArmSegment로 옮긴 뒤 회전하고 다시 원래 자리로 돌아온다.
+		objectXform = glm::translate(objectXform, glm::vec3(TeaTransX - 0.5f, 0.9f, TeaTransZ));
+		objectXform = glm::rotate(objectXform, TeaElbowAng * 0.016f, glm::vec3(0.0f, 0.0f, 1.0f));
+		objectXform = glm::translate(objectXform, glm::vec3(-TeaTransX + 0.5f, -0.9f, TeaTransZ));
+	}
+	/*************/
+
+	// Wrist => 빨간색 기둥 + 회색 동그라미
+	model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+	model = glm::rotate(model, WristAng * 0.015f, glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::rotate(model, WristTwistAng * 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+	DrawWrist(model); 
+
+	/*Extra Credit*/
+	if (SpaceDown && RobotControl == 3)
+	{
+		// 축을 Wrist로 옮긴 뒤 회전하고 다시 원래 자리로 돌아온다.
+		objectXform = glm::translate(objectXform, glm::vec3(TeaTransX - 0.5f, 1.3f, TeaTransZ));
+		objectXform = glm::rotate(objectXform, TeaWristAng * 0.015f, glm::vec3(0.0f, 0.0f, 1.0f));
+		objectXform = glm::rotate(objectXform, TeaWristTwistAng * 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+		objectXform = glm::translate(objectXform, glm::vec3(-TeaTransX + 0.5f, -1.3f, TeaTransZ));
+	}
+	/*************/
+	
+	// Right FingerBase, Left FingerBase => 빨간색 얇고 긴 기둥 + 회색 동그라미
+	model = glm::translate(model, glm::vec3(0.0f, 0.2f, 0.0f));
+	model = glm::rotate(model, FingerAng1 * 0.018f, glm::vec3(0.0f, 0.0f, 1.0f));
+	DrawFingerBase(model); 
+
+	model = glm::rotate(model, FingerAng1 * -0.036f, glm::vec3(0.0f, 0.0f, 1.0f));
+	DrawFingerBase(model);
+
+	// Right FingerTip, Left FingerTip => 빨간색 원뿔
+	model = glm::rotate(model, FingerAng1 * 0.036f, glm::vec3(0.0f, 0.0f, 1.0f)); // 다시 left 각도로 회전
+	model = glm::translate(model, glm::vec3(0.0f, 0.35f, 0.0f));
+	model = glm::rotate(model, FingerAng2 * 0.087f, glm::vec3(0.0f, 0.0f, 1.0f));
+	DrawFingerTip(model); 
+
+	model = glm::rotate(model, FingerAng2 * -0.087f, glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::translate(model, glm::vec3(0.0f, -0.35f, 0.0f));
+	model = glm::rotate(model, FingerAng1 * -0.036f, glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::translate(model, glm::vec3(0.0f, 0.35f, 0.0f));
+	model = glm::rotate(model, FingerAng2 * -0.087f, glm::vec3(0.0f, 0.0f, 1.0f));
+	DrawFingerTip(model);
+
+	/*Extra Credit*/
+	objectXform = glm::scale(objectXform, glm::vec3(0.08f, 0.08f, 0.08f));
+	DrawObject(objectXform);
+	/*************/
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -227,8 +331,27 @@ void processInput(GLFWwindow* window, int key, int scancode, int action, int mod
 
 	if (key >= GLFW_KEY_1 && key <= GLFW_KEY_5 && action == GLFW_PRESS)
 		RobotControl = key - GLFW_KEY_1;
+	else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+	{
+		if (SpaceDown)
+			SpaceDown = false;
+		else
+			SpaceDown = true;
+	}
 	else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+	// HW4
+	float cameraSpeed = 5.0f * deltaTime; // 속도 조절
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.ProcessKeyboard(FORWARD, cameraSpeed);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.ProcessKeyboard(BACKWARD, cameraSpeed);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboard(LEFT, cameraSpeed);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.ProcessKeyboard(RIGHT, cameraSpeed);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -259,15 +382,34 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 	if (LeftButtonDown)
 	{
+		// 제공된 실행결과와 유사해지도록 값 조정
 		switch (RobotControl)
 		{
 		case 0: BaseTransX += xoffset; BaseTransZ -= yoffset; break;
-		case 1: BaseSpin += xoffset * 180 ; break;
+		case 1: BaseSpin += xoffset * 270 ; break;
 		case 2: ShoulderAng += yoffset   * -90; ElbowAng += xoffset  * 90; break;
-		case 3: WristAng += yoffset  * -180; WristTwistAng += xoffset  * 180; break;
-		case 4: FingerAng1 += yoffset  * 90; FingerAng2 += xoffset * 180; break;
+		case 3: WristAng += yoffset  * -220; WristTwistAng += xoffset  * 220; break;
+		case 4: FingerAng1 += yoffset  * 90; FingerAng2 += xoffset * 60; break;
+		}
+
+		if (SpaceDown) 
+		{
+			switch (RobotControl)
+			{
+			case 0: TeaTransX += xoffset; TeaTransZ -= yoffset; break;
+			case 1: TeaBaseSpin += xoffset * 270;/* TeaTransX += xoffset; TeaTransZ -= yoffset;*/ break;
+			case 2: TeaShoulderAng += yoffset * -90; TeaElbowAng += xoffset * 90; break;
+			case 3: TeaWristAng += yoffset * -220; TeaWristTwistAng += xoffset * 220; break;
+			case 4: TeaFingerAng1 += yoffset * 90; TeaFingerAng2 += xoffset * 60; break;
+			}
 		}
 	} 
+
+	// HW4
+	if (RightButtonDown)
+	{
+		camera.ProcessMouseMovement(xoffset * 700, yoffset * 700);
+	}
 	
 }
 
@@ -280,6 +422,17 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
 	{
 		LeftButtonDown = 0;
+	}
+
+
+	// HW4
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		RightButtonDown = 1;
+	}
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+	{
+		RightButtonDown = 0;
 	}
 }
 
