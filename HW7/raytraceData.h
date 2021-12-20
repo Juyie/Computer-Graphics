@@ -1,3 +1,4 @@
+// 컴퓨터공학과 1976433 황주이
 #pragma once
 
 #include <glad/glad.h>
@@ -50,4 +51,9 @@ namespace raytraceData {
 		material* m;
 	} sphere;
 
+	typedef struct halfspace {
+		point* c;  /* center */
+		point* n;  /* normal */
+		material* m;
+	}halfspace;
 }

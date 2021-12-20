@@ -1,0 +1,9 @@
+컴퓨터공학과 1976433 황주이
+
+1. Point Light Source를 추가하고 diffuse, specular component를 추가하였습니다.
+2. halfspace를 새로운 Object로 추가하였고, sphere를 2개 추가로 더 생성하였습니다.
+3. 가장 왼쪽 파란 sphere에 reflection을 적용하였습니다.
+4. shadow rays를 사용하여 shadows를 만들었습니다.
+
+<Extra Credit>
+1. 가운데 sphere에 refraction을 적용하였습니다.

@@ -1,3 +1,4 @@
+// 컴퓨터공학과 1976433 황주이
 #pragma once
 
 #include <glad/glad.h>
